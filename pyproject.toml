@@ -1,0 +1,55 @@
+[project]
+name = "income-expense-bot"
+version = "0.1.0"
+description = "Personal Telegram bot for recording income and expenses"
+requires-python = ">=3.12"
+dependencies = [
+    "python-telegram-bot>=21,<22",
+    "sqlalchemy>=2.0.36",
+    "aiosqlite>=0.20",
+    "greenlet>=3.1",
+]
+
+[project.scripts]
+income-expense-bot = "income_expense_bot.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "mypy>=1.13",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/income_expense_bot"]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+packages = ["income_expense_bot"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["S101"]
