@@ -1,0 +1,50 @@
+schema: spec-driven
+
+context: |
+  Project: personal-ops-bots.
+  
+  Domain Scope:
+    - Personal automation bots (initially payment automation and digital brain sync with Obsidian).
+    - Each bot and its bounded context must remain independently understandable, deployable, and runnable.
+    - Do not assume shared databases, credentials, runtimes, or internal data models between bots unless explicitly designed via a shared contract or integration.
+
+  Agreed Technical Direction:
+    - Language: Python (current stable version, strict typing with Pydantic/Mypy where applicable).
+    - Architecture: Hexagonal Architecture (Ports and Adapters) keeping core domain logic strictly isolated from external frameworks, infrastructure, and delivery mechanisms.
+    - Pattern: CQRS (Command Query Responsibility Segregation) strictly applied at the application/domain boundary where state mutation differs significantly from data retrieval.
+    - Testing: Comprehensive automated testing (Unit tests for domain logic, integration tests for adapters/infrastructure).
+
+rules:
+  proposal:
+    - State the problem, intended outcome, explicit scope, and clear acceptance criteria.
+    - Separate confirmed decisions from assumptions and unresolved questions.
+    - Keep each change focused on a single capability or bounded context; avoid bundling unrelated changes.
+
+  specs:
+    - Describe observable behavior in testable, domain-driven language.
+    - Keep requirements implementation-agnostic (focus on the "what", leave the "how" to design/tasks) unless an architectural constraint dictates otherwise.
+    - Update existing requirements when behavior evolves; avoid redundant duplication across spec files.
+
+  design:
+    - Strictly adhere to Python best practices, hexagonal boundaries, and CQRS where appropriate.
+    - Ensure domain entities and use cases contain zero dependencies on external libraries (database drivers, specific HTTP clients, UI, etc.).
+    - Document significant architectural trade-offs and introduce abstractions only when they serve a concrete, immediate need (YAGNI/KISS).
+
+  tasks:
+    - Break implementation into small, atomic, ordered tasks with clear, verifiable completion criteria.
+    - Ensure every task includes corresponding tests, necessary documentation updates, and error handling considerations.
+    - Maintain strict traceability from tasks back to specs and proposals.
+
+operations:
+  apply:
+    guidance:
+      - "Hexagonal Boundary Enforcement: Ensure that domain models and use cases contain zero imports from external adapters, databases, or frameworks (FastAPI, requests, SQL drivers, etc.). Dependencies must point inward only."
+      - "CQRS Separation: Verify that commands mutate state and return void/status without fetching domain projection data, and queries do not trigger side effects or domain event emissions."
+      - "Test-Driven Verification: Write automated unit tests for domain logic and integration tests for adapters before marking any task as complete."
+      - "Keep test execution logs concise in the chat; summarize only test failures, regressions, or key verifications."
+
+  archive:
+    guidance:
+      - "Delta Integration Check: Verify that all delta specifications in the change folder have been successfully merged into their respective bounded context under openspec/specs/."
+      - "Clean State Verification: Ensure no temporary mock files, leftover debugging code, or dangling credentials remain in the repository."
+      - "Summary & Handover: Provide a concise summary of the architectural impact, changes introduced, and confirm that the system state is clean before finishing."
