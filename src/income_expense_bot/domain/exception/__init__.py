@@ -1,5 +1,8 @@
 from income_expense_bot.domain.exception.ledger import (
+    EntryNotFoundError,
     InvalidAmountError,
+    InvalidCategoryError,
+    InvalidCursorError,
     InvalidDateFormatError,
     InvalidDateRangeError,
     MissingPayeeError,
@@ -7,7 +10,10 @@ from income_expense_bot.domain.exception.ledger import (
 )
 
 __all__ = [
+    "EntryNotFoundError",
     "InvalidAmountError",
+    "InvalidCategoryError",
+    "InvalidCursorError",
     "InvalidDateFormatError",
     "InvalidDateRangeError",
     "MissingPayeeError",

@@ -147,6 +147,10 @@ docker-compose.override.yaml
 data/*
 !data/.gitkeep
 
+# Vue SPA
+frontend/node_modules/
+frontend/dist/
+
 # Local scratch
 tmp/
 temp/
