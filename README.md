@@ -62,6 +62,37 @@ Examples:
 
 Default category is `Uncategorized`. Default payment method is card (not part of the command).
 
+### Raspberry Pi 3B (64-bit) — manual release
+
+Target: Pi 3B, 1 GB RAM. **Build and push from a laptop** (`linux/arm64`). Do not build on the Pi by default (likely OOM). The image lives in GitHub Container Registry (private).
+
+On the laptop (`write:packages`):
+
+```sh
+docker login ghcr.io
+docker buildx build --platform linux/arm64 \
+  -t ghcr.io/davidalvarezcastro/income-expense-bot:latest \
+  -t ghcr.io/davidalvarezcastro/income-expense-bot:$(git rev-parse --short HEAD) \
+  --push .
+```
+
+On the Pi (`~/personal-ops-bots`, `read:packages`):
+
+```sh
+cp .env.example .env
+chmod 600 .env
+# set TELEGRAM_BOT_TOKEN and TELEGRAM_ALLOWED_USER_IDS
+# LEDGER_SQLITE_PATH=/data/ledger.sqlite
+mkdir -p data
+echo "$GHCR_TOKEN" | docker login ghcr.io -u davidalvarezcastro --password-stdin
+docker compose pull
+docker compose up -d
+```
+
+Compose bind-mounts `./data` to `/data`, restarts after crash or reboot (`unless-stopped`), caps memory at 384 MB, and publishes **no ports**. Logs: `docker compose logs -f`.
+
+Building on the Pi is a **last resort**: stop the bot first and expect heavy swap.
+
 ### Tests and checks
 
 ```sh
