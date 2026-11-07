@@ -1,6 +1,6 @@
 from pathlib import Path
 
-README = Path(__file__).resolve().parents[3] / "README.md"
+README = Path(__file__).resolve().parents[4] / "README.md"
 
 
 def test_readme_documents_commands_and_logging() -> None:

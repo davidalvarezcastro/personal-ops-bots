@@ -1,13 +1,14 @@
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 
 
 def test_dockerignore_excludes_secrets_and_data() -> None:
     text = (ROOT / ".dockerignore").read_text(encoding="utf-8")
     assert ".env" in text
     assert "data/" in text
-    assert "tests/" in text
+    assert "backend/tests" in text
+    assert "frontend/" in text
     assert "openspec/" in text
 
 
