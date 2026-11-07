@@ -1,6 +1,6 @@
 from pathlib import Path
 
-README = Path(__file__).resolve().parents[3] / "README.md"
+README = Path(__file__).resolve().parents[4] / "README.md"
 
 
 def test_readme_documents_commands_and_logging() -> None:
@@ -13,3 +13,7 @@ def test_readme_documents_commands_and_logging() -> None:
     assert "uvicorn income_expense_bot.interfaces.http.app:app" in text
     assert "pnpm dev" in text
     assert "There is no login." in text
+    assert "cd backend" in text
+    assert "The Python project lives in `backend/`" in text
+    assert "uv run python -m income_expense_bot" in text
+    assert "uv run pytest" in text

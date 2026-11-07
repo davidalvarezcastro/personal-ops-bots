@@ -2,11 +2,13 @@
 .github
 .cursor
 .venv
+backend/.venv
 .env
 .env.*
 !.env.example
 data/
-tests/
+frontend/
+backend/tests
 openspec/
 **/__pycache__/
 **/.pytest_cache/

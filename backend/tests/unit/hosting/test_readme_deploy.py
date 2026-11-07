@@ -1,7 +1,7 @@
 from pathlib import Path
 
-README = Path(__file__).resolve().parents[3] / "README.md"
-COMPOSE = Path(__file__).resolve().parents[3] / "compose.yaml"
+README = Path(__file__).resolve().parents[4] / "README.md"
+COMPOSE = Path(__file__).resolve().parents[4] / "compose.yaml"
 
 
 def test_readme_documents_ghcr_manual_release() -> None:

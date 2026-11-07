@@ -8,11 +8,12 @@ Record cashflow with Telegram text commands or an unauthenticated local web app.
 
 ### Setup
 
-Python 3.12+ and [uv](https://docs.astral.sh/uv/).
+Python 3.12+ and [uv](https://docs.astral.sh/uv/). The Python project lives in `backend/`; the Vue app stays in `frontend/`. Compose and `.env` stay at the repository root.
 
 ```sh
-uv sync
 cp .env.example .env
+cd backend
+uv sync
 ```
 
 Fill `.env`:
@@ -26,7 +27,7 @@ Fill `.env`:
 | `LOG_FORMAT` | `json` or `console`. Default: console if stderr is a TTY, otherwise JSON |
 
 ```sh
-set -a && source .env && set +a
+set -a && source ../.env && set +a
 uv run python -m income_expense_bot
 ```
 
@@ -67,7 +68,8 @@ Default category is `Uncategorized`. Default payment method is card (not part of
 The FastAPI adapter shares the same SQLite file as the bot. **There is no login.** Do not expose this process on the public internet.
 
 ```sh
-set -a && source .env && set +a
+cd backend
+set -a && source ../.env && set +a
 uv run uvicorn income_expense_bot.interfaces.http.app:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -119,8 +121,9 @@ Building on the Pi is a **last resort**: stop the bot first and expect heavy swa
 ### Tests and checks
 
 ```sh
+cd backend
 uv run pytest
 uv run ruff check src tests
 uv run mypy src/income_expense_bot
-cd frontend && pnpm test && pnpm build
+cd ../frontend && pnpm test && pnpm build
 ```
