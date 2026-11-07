@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from income_expense_bot.config import Config
@@ -13,8 +14,16 @@ def sqlite_url(path: str) -> str:
     return f"sqlite+aiosqlite:///{resolved}"
 
 
+def _enable_wal(dbapi_connection: object, _connection_record: object) -> None:
+    cursor = dbapi_connection.cursor()  # type: ignore[attr-defined]
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.close()
+
+
 def create_engine_from_config(config: Config) -> AsyncEngine:
-    return create_async_engine(sqlite_url(config.ledger_sqlite_path), echo=False)
+    engine = create_async_engine(sqlite_url(config.ledger_sqlite_path), echo=False)
+    event.listen(engine.sync_engine, "connect", _enable_wal)
+    return engine
 
 
 def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:

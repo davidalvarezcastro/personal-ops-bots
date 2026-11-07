@@ -19,3 +19,14 @@ class RecordIncomeCommand(Command):
     amount_cents: int
     payee: str
     category: str
+
+
+@dataclass(frozen=True)
+class ChangeEntryCategoryCommand(Command):
+    entry_id: str
+    category: str
+
+
+@dataclass(frozen=True)
+class DeleteLedgerEntryCommand(Command):
+    entry_id: str

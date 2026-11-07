@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from income_expense_bot.domain.exception.ledger import MissingPayeeError
+from income_expense_bot.domain.exception.ledger import InvalidCategoryError, MissingPayeeError
+from income_expense_bot.domain.model.category import catalog_for
 from income_expense_bot.domain.model.entry_type import EntryType, PaymentMethod
 from income_expense_bot.domain.model.money import Money
 
@@ -90,3 +91,11 @@ class LedgerEntry:
         if occurred_at is not None:
             kwargs["occurred_at"] = occurred_at
         return cls(**kwargs)  # type: ignore[arg-type]
+
+    def change_category(self, category: str) -> None:
+        name = category.strip()
+        lookup = {item.casefold(): item for item in catalog_for(self.type)}
+        canonical = lookup.get(name.casefold())
+        if canonical is None:
+            raise InvalidCategoryError(f"category is not allowed for {self.type}: {category}")
+        self.category = canonical

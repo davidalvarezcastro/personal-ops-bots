@@ -20,3 +20,15 @@ class InvalidDateRangeError(LedgerError):
 
 class UnauthorizedError(LedgerError):
     """Operator is not allowlisted."""
+
+
+class InvalidCategoryError(LedgerError):
+    """Category is not in the catalog for this entry type."""
+
+
+class EntryNotFoundError(LedgerError):
+    """No ledger entry exists for the given id."""
+
+
+class InvalidCursorError(LedgerError):
+    """List cursor is malformed."""

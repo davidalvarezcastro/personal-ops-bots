@@ -10,3 +10,6 @@ def test_readme_documents_commands_and_logging() -> None:
     assert "LOG_LEVEL" in text
     assert "LOG_FORMAT" in text
     assert "stdout" in text.lower()
+    assert "uvicorn income_expense_bot.interfaces.http.app:app" in text
+    assert "pnpm dev" in text
+    assert "There is no login." in text

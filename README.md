@@ -4,7 +4,7 @@ Personal automation bots. The first bounded context is an income and expense led
 
 ## Income / expense bot
 
-Record cashflow with text commands. Amounts are euros (cents internally). There is no web UI in this version.
+Record cashflow with Telegram text commands or an unauthenticated local web app. Amounts are euros (cents internally).
 
 ### Setup
 
@@ -62,6 +62,26 @@ Examples:
 
 Default category is `Uncategorized`. Default payment method is card (not part of the command).
 
+### HTTP API and web app (local)
+
+The FastAPI adapter shares the same SQLite file as the bot. **There is no login.** Do not expose this process on the public internet.
+
+```sh
+set -a && source .env && set +a
+uv run uvicorn income_expense_bot.interfaces.http.app:app --reload --host 127.0.0.1 --port 8000
+```
+
+CORS defaults to `http://localhost:5173` (`CORS_ORIGINS` comma-separated). Optional: `LEDGER_SQLITE_PATH` for the ledger file.
+
+```sh
+cd frontend
+pnpm install
+# VITE_API_BASE_URL=http://127.0.0.1:8000
+pnpm dev
+```
+
+Open `http://localhost:5173`. Home is the current calendar month (`Europe/Madrid`) plus the eight newest entries.
+
 ### Raspberry Pi 3B (64-bit) — manual release
 
 Target: Pi 3B, 1 GB RAM. **Build and push from a laptop** (`linux/arm64`). Do not build on the Pi by default (likely OOM). The image lives in GitHub Container Registry (private).
@@ -102,4 +122,5 @@ Building on the Pi is a **last resort**: stop the bot first and expect heavy swa
 uv run pytest
 uv run ruff check src tests
 uv run mypy src/income_expense_bot
+cd frontend && pnpm test && pnpm build
 ```
