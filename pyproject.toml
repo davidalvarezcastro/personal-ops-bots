@@ -8,6 +8,7 @@ dependencies = [
     "sqlalchemy>=2.0.36",
     "aiosqlite>=0.20",
     "greenlet>=3.1",
+    "structlog>=26.1.0",
 ]
 
 [project.scripts]
