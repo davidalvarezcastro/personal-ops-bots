@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable, Coroutine
 from datetime import date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncEngine
-from telegram import Update
+from telegram import BotCommand, Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 from income_expense_bot.application.handler.record_expense import RecordExpenseHandler
@@ -20,6 +21,15 @@ from income_expense_bot.infrastructure.database import (
 from income_expense_bot.infrastructure.read_model.balance_read_model import SqlBalanceReadModel
 from income_expense_bot.infrastructure.unity_of_work import SqlAlchemyUnitOfWork
 from income_expense_bot.interfaces.telegram.dispatch import TelegramDispatcher
+from income_expense_bot.logging_config import configure_logging, get_logger
+
+MENU_COMMANDS = [
+    BotCommand("start", "Welcome; confirm the bot is ready"),
+    BotCommand("help", "List commands and syntax"),
+    BotCommand("expense", "Record an expense"),
+    BotCommand("income", "Record income"),
+    BotCommand("balance", "Show net and category totals"),
+]
 
 
 def madrid_today() -> date:
@@ -42,6 +52,17 @@ def build_dispatcher(config: Config) -> tuple[TelegramDispatcher, AsyncEngine]:
     return dispatcher, engine
 
 
+async def complete_startup(
+    application: Application[Any, Any, Any, Any, Any, Any],
+    *,
+    engine: AsyncEngine | None = None,
+) -> None:
+    if engine is not None:
+        await create_schema(engine)
+    await application.bot.set_my_commands(MENU_COMMANDS)
+    get_logger(__name__).info("bot.running", component="telegram")
+
+
 def build_ptb_application(
     config: Config,
     dispatcher: TelegramDispatcher,
@@ -49,52 +70,44 @@ def build_ptb_application(
     engine: AsyncEngine | None = None,
 ) -> Application[Any, Any, Any, Any, Any, Any]:
     builder = Application.builder().token(config.telegram_bot_token)
-    if engine is not None:
 
-        async def post_init(_application: Application[Any, Any, Any, Any, Any, Any]) -> None:
-            await create_schema(engine)
+    async def post_init(application: Application[Any, Any, Any, Any, Any, Any]) -> None:
+        await complete_startup(application, engine=engine)
+
+    builder = builder.post_init(post_init)
+    if engine is not None:
 
         async def post_shutdown(_application: Application[Any, Any, Any, Any, Any, Any]) -> None:
             await engine.dispose()
 
-        builder = builder.post_init(post_init).post_shutdown(post_shutdown)
+        builder = builder.post_shutdown(post_shutdown)
 
     application = builder.build()
 
-    async def expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        async def reply(text: str) -> None:
-            if update.message:
-                await update.message.reply_text(text)
+    def bind(
+        handle: Callable[[int | None, str, Callable[[str], Awaitable[None]]], Awaitable[None]],
+    ) -> Callable[[Update, ContextTypes.DEFAULT_TYPE], Coroutine[Any, Any, None]]:
+        async def inner(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+            async def reply(text: str) -> None:
+                if update.message:
+                    await update.message.reply_text(text)
 
-        user_id = update.effective_user.id if update.effective_user else None
-        text = update.message.text if update.message and update.message.text else ""
-        await dispatcher.handle_expense(user_id, text, reply)
+            user_id = update.effective_user.id if update.effective_user else None
+            text = update.message.text if update.message and update.message.text else ""
+            await handle(user_id, text, reply)
 
-    async def income(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        async def reply(text: str) -> None:
-            if update.message:
-                await update.message.reply_text(text)
+        return inner
 
-        user_id = update.effective_user.id if update.effective_user else None
-        text = update.message.text if update.message and update.message.text else ""
-        await dispatcher.handle_income(user_id, text, reply)
-
-    async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        async def reply(text: str) -> None:
-            if update.message:
-                await update.message.reply_text(text)
-
-        user_id = update.effective_user.id if update.effective_user else None
-        text = update.message.text if update.message and update.message.text else ""
-        await dispatcher.handle_balance(user_id, text, reply)
-
-    application.add_handler(CommandHandler("expense", expense))
-    application.add_handler(CommandHandler("income", income))
-    application.add_handler(CommandHandler("balance", balance))
+    application.add_handler(CommandHandler("start", bind(dispatcher.handle_start)))
+    application.add_handler(CommandHandler("help", bind(dispatcher.handle_help)))
+    application.add_handler(CommandHandler("expense", bind(dispatcher.handle_expense)))
+    application.add_handler(CommandHandler("income", bind(dispatcher.handle_income)))
+    application.add_handler(CommandHandler("balance", bind(dispatcher.handle_balance)))
     return application
 
 
 def run(config: Config | None = None) -> None:
+    configure_logging()
     config = config or Config.from_env()
     dispatcher, engine = build_dispatcher(config)
     application = build_ptb_application(config, dispatcher, engine=engine)
