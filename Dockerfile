@@ -20,8 +20,8 @@ ENV PATH="/app/.venv/bin:$PATH" \
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 
-RUN groupadd --system bot \
-    && useradd --system --gid bot --home /app bot \
+RUN groupadd --gid 1000 bot \
+    && useradd --uid 1000 --gid bot --home-dir /app --no-create-home bot \
     && mkdir -p /data \
     && chown bot:bot /data
 

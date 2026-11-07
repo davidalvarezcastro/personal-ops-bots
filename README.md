@@ -76,18 +76,21 @@ docker buildx build --platform linux/arm64 \
   --push .
 ```
 
-On the Pi (`~/personal-ops-bots`, `read:packages`):
+On the Pi (`~/personal-ops-bots`, `read:packages`), `.env` only needs Telegram secrets. Compose already sets `LEDGER_SQLITE_PATH=/data/ledger.sqlite` and `LOG_FORMAT=json`. Create `data/` as the Pi user (uid 1000), not with `sudo`, so the container can write the SQLite file.
 
 ```sh
-cp .env.example .env
+cat > .env <<'EOF'
+TELEGRAM_BOT_TOKEN=replace-me
+TELEGRAM_ALLOWED_USER_IDS=123456789
+EOF
 chmod 600 .env
-# set TELEGRAM_BOT_TOKEN and TELEGRAM_ALLOWED_USER_IDS
-# LEDGER_SQLITE_PATH=/data/ledger.sqlite
 mkdir -p data
 echo "$GHCR_TOKEN" | docker login ghcr.io -u davidalvarezcastro --password-stdin
 docker compose pull
 docker compose up -d
 ```
+
+If you already created `data/` as root, fix ownership: `sudo chown -R 1000:1000 data`.
 
 Compose bind-mounts `./data` to `/data`, restarts after crash or reboot (`unless-stopped`), caps memory at 384 MB, and publishes **no ports**. Logs: `docker compose logs -f`.
 

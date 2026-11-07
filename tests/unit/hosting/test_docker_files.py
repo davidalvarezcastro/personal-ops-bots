@@ -19,6 +19,8 @@ def test_dockerfile_does_not_copy_env() -> None:
     assert "income_expense_bot" in text
     assert "LEDGER_SQLITE_PATH=/data/ledger.sqlite" in text
     assert "LOG_FORMAT=json" in text
+    assert "--uid 1000" in text
+    assert "--gid 1000" in text
 
 
 def test_data_sqlite_is_gitignored() -> None:
@@ -36,4 +38,7 @@ def test_compose_uses_ghcr_and_is_unexposed() -> None:
     assert "restart: unless-stopped" in text
     assert "mem_limit: 384m" in text
     assert "./data:/data" in text
+    assert "user: \"1000:1000\"" in text
     assert ".env" in text
+    assert "LEDGER_SQLITE_PATH: /data/ledger.sqlite" in text
+    assert "LOG_FORMAT: json" in text

@@ -9,6 +9,7 @@ services:
       LOG_FORMAT: json
     volumes:
       - ./data:/data
+    user: "1000:1000"
     restart: unless-stopped
     mem_limit: 384m
     cpus: "1.0"
