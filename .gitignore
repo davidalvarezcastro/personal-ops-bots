@@ -143,6 +143,10 @@ Desktop.ini
 docker-compose.override.yml
 docker-compose.override.yaml
 
+# Hosted ledger on the Pi (directory mount)
+data/*
+!data/.gitkeep
+
 # Local scratch
 tmp/
 temp/
