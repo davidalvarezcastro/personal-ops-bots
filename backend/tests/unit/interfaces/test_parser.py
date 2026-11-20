@@ -83,9 +83,23 @@ def test_expense_usd_iso() -> None:
 
 
 def test_expense_yen_symbol() -> None:
-    command = parse_expense("/expense 65 ¥ Konbini")
+    command = parse_expense("/expense 65 JP¥ Konbini")
     assert command.amount_cents == 65
     assert command.currency == "JPY"
+    assert command.payee == "Konbini"
+
+
+def test_expense_yuan_yen_sign_and_rmb() -> None:
+    spaced = parse_expense("/expense 65 ¥ Shop")
+    assert spaced.amount_cents == 6500
+    assert spaced.currency == "CNY"
+    attached = parse_expense("/expense 65¥ Shop")
+    assert attached.amount_cents == 6500
+    assert attached.currency == "CNY"
+    rmb = parse_expense("/expense 12,50 RMB Shop")
+    assert rmb.amount_cents == 1250
+    assert rmb.currency == "CNY"
+    assert rmb.payee == "Shop"
 
 
 def test_unknown_iso_rejected() -> None:

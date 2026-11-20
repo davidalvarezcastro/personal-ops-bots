@@ -17,3 +17,5 @@ def test_readme_documents_commands_and_logging() -> None:
     assert "The Python project lives in `backend/`" in text
     assert "uv run python -m income_expense_bot" in text
     assert "uv run pytest" in text
+    assert "JP¥" in text
+    assert "RMB" in text

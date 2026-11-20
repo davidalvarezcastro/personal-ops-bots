@@ -159,8 +159,51 @@ def test_create_usd_and_split_balance(tmp_path: Path) -> None:
         assert usd.json()["currency"] == "USD"
         assert usd.json()["amount_cents"] == 500
         assert rejected.status_code == 400
+        rmb = client.post(
+            "/api/v1/entries",
+            json={
+                "type": "expense",
+                "amount": "12,50",
+                "payee": "Shop",
+                "category": "Shopping",
+                "currency": "RMB",
+            },
+        )
+        assert rmb.status_code == 201
+        assert rmb.json()["currency"] == "CNY"
+        assert rmb.json()["amount_cents"] == 1250
         payload = client.get("/api/v1/balance").json()
     by_code = {group["currency"]: group for group in payload["currencies"]}
     assert by_code["EUR"]["expense_cents"] == 1000
     assert by_code["USD"]["expense_cents"] == 500
+
+
+def test_create_yen_and_yuan_symbol_currency(tmp_path: Path) -> None:
+    with _client(tmp_path) as client:
+        yen = client.post(
+            "/api/v1/entries",
+            json={
+                "type": "expense",
+                "amount": "65",
+                "payee": "Konbini",
+                "category": "Groceries",
+                "currency": "JP¥",
+            },
+        )
+        yuan = client.post(
+            "/api/v1/entries",
+            json={
+                "type": "expense",
+                "amount": "12,50",
+                "payee": "Shop",
+                "category": "Shopping",
+                "currency": "¥",
+            },
+        )
+        assert yen.status_code == 201
+        assert yen.json()["currency"] == "JPY"
+        assert yen.json()["amount_cents"] == 65
+        assert yuan.status_code == 201
+        assert yuan.json()["currency"] == "CNY"
+        assert yuan.json()["amount_cents"] == 1250
 

@@ -45,7 +45,7 @@ Logs go to **stdout** as structured events (ISO-8601 UTC timestamp, level, event
 
 `/start` confirms the bot is ready and points you at `/help`. `/help` lists the same commands with syntax. Telegram's command menu is registered on startup.
 
-Amounts accept comma or dot decimals. Optional currency (ISO or `€` `$` `£` `¥` `CN¥`) follows the amount; default is EUR. `/balance` without dates is the current calendar month (`Europe/Madrid`) and shows net plus totals by category, grouped by currency. Dates are `YYYY-MM-DD`.
+Amounts accept comma or dot decimals. Optional currency follows the amount; default is EUR. Tokens: ISO codes, `€` `$` `£`, yen `JPY`/`JP¥`, yuan `¥`/`RMB`/`CNY`/`CN¥`. `/balance` without dates is the current calendar month (`Europe/Madrid`) and shows net plus totals by category, grouped by currency. Dates are `YYYY-MM-DD`.
 
 Examples:
 

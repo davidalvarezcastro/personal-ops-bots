@@ -12,7 +12,8 @@ Commands:
   Show this command list.
 
 /expense <amount> [<currency>] [<category>] <merchant...>
-  Record an expense. Currency is optional (EUR default). Example: /expense 12,50 € Mercadona
+  Record an expense. Currency is optional (EUR default). Yen: JPY or JP¥. Yuan: ¥, RMB, CNY, CN¥.
+  Example: /expense 12,50 € Mercadona
 
 /income <amount> [<currency>] [<category>] <source...>
   Record income. Currency is optional (EUR default). Example: /income 1800 Salary Company
