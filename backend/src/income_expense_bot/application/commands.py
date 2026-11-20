@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from income_expense_bot.domain.model.currency import DEFAULT_CURRENCY
+
 
 class Command:
     """Marker for write-side messages."""
@@ -12,6 +14,7 @@ class RecordExpenseCommand(Command):
     amount_cents: int
     payee: str
     category: str
+    currency: str = DEFAULT_CURRENCY
 
 
 @dataclass(frozen=True)
@@ -19,6 +22,7 @@ class RecordIncomeCommand(Command):
     amount_cents: int
     payee: str
     category: str
+    currency: str = DEFAULT_CURRENCY
 
 
 @dataclass(frozen=True)

@@ -8,7 +8,7 @@ class RecordIncomeHandler(BaseHandler):
     async def handle(self, command: RecordIncomeCommand) -> None:
         async with self._uow as uow:
             entry = LedgerEntry.record_income(
-                money=Money(cents=command.amount_cents),
+                money=Money(cents=command.amount_cents, currency=command.currency),
                 payee=command.payee,
                 category=command.category,
             )

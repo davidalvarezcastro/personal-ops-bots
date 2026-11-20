@@ -35,6 +35,7 @@ def test_start_and_help_copy_lists_commands() -> None:
     for name in ("/start", "/help", "/expense", "/income", "/balance"):
         assert name in HELP_REPLY
     assert "<amount>" in HELP_REPLY
+    assert "[<currency>]" in HELP_REPLY
     assert "<merchant" in HELP_REPLY or "<merchant...>" in HELP_REPLY
 
 

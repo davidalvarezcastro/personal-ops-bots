@@ -101,6 +101,8 @@ tokens.json
 *.sqlite
 *.sqlite3
 *.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
 dump.rdb
 *.pid
 

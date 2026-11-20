@@ -27,9 +27,16 @@ def test_balance_current_month_without_credentials(tmp_path: Path) -> None:
     last = monthrange(today.year, today.month)[1]
     assert payload["start"] == today.replace(day=1).isoformat()
     assert payload["end"] == today.replace(day=last).isoformat()
-    assert payload["income_cents"] == 0
-    assert payload["expense_cents"] == 0
-    assert payload["net_cents"] == 0
+    assert payload["currencies"] == [
+        {
+            "currency": "EUR",
+            "income_cents": 0,
+            "expense_cents": 0,
+            "net_cents": 0,
+            "expense_by_category": [],
+            "income_by_category": [],
+        }
+    ]
 
 
 def test_balance_invalid_range(tmp_path: Path) -> None:
@@ -94,6 +101,7 @@ def test_post_expense_and_reject_empty_payee(tmp_path: Path) -> None:
         )
         assert ok.status_code == 201
         assert ok.json()["amount_cents"] == 1250
+        assert ok.json()["currency"] == "EUR"
         assert ok.json()["payee"] == "Mercadona"
         assert ok.json()["category"] == "Groceries"
         bad = client.post(
@@ -120,6 +128,39 @@ def test_patch_and_delete_entry(tmp_path: Path) -> None:
         deleted = client.delete(f"/api/v1/entries/{entry_id}")
         assert deleted.status_code == 204
         balance = client.get("/api/v1/balance").json()
-        assert balance["expense_cents"] == 0
+        assert balance["currencies"][0]["expense_cents"] == 0
         gone = client.delete(f"/api/v1/entries/{entry_id}")
         assert gone.status_code == 404
+
+
+def test_create_usd_and_split_balance(tmp_path: Path) -> None:
+    with _client(tmp_path) as client:
+        eur = client.post(
+            "/api/v1/entries",
+            json={"type": "expense", "amount": "10,00", "payee": "Shop", "category": "Groceries"},
+        )
+        usd = client.post(
+            "/api/v1/entries",
+            json={
+                "type": "expense",
+                "amount": "5,00",
+                "payee": "Cafe",
+                "category": "Food & Drinks",
+                "currency": "USD",
+            },
+        )
+        rejected = client.post(
+            "/api/v1/entries",
+            json={"type": "expense", "amount": "1", "payee": "Shop", "category": "Groceries", "currency": "INR"},
+        )
+        assert eur.status_code == 201
+        assert eur.json()["currency"] == "EUR"
+        assert usd.status_code == 201
+        assert usd.json()["currency"] == "USD"
+        assert usd.json()["amount_cents"] == 500
+        assert rejected.status_code == 400
+        payload = client.get("/api/v1/balance").json()
+    by_code = {group["currency"]: group for group in payload["currencies"]}
+    assert by_code["EUR"]["expense_cents"] == 1000
+    assert by_code["USD"]["expense_cents"] == 500
+

@@ -46,6 +46,14 @@ async def test_query_service_filters_by_range(
                 occurred_at=_at(3),
             )
         )
+        await unit.entries.add(
+            LedgerEntry.record_expense(
+                money=Money(cents=500, currency="USD"),
+                payee="D",
+                category="Food & Drinks",
+                occurred_at=_at(8),
+            )
+        )
         out_of_range = LedgerEntry(
             type=EntryType.EXPENSE,
             amount_cents=9999,
@@ -62,13 +70,17 @@ async def test_query_service_filters_by_range(
         today_provider=lambda: datetime(2026, 11, 6, tzinfo=ZoneInfo("Europe/Madrid")).date(),
     )
     result = await service.get()
-    assert result.income_cents == 180000
-    assert result.expense_cents == 2500
-    assert result.net_cents == 177500
+    by_code = {group.currency: group for group in result.currencies}
+    assert by_code["EUR"].income_cents == 180000
+    assert by_code["EUR"].expense_cents == 2500
+    assert by_code["EUR"].net_cents == 177500
+    assert by_code["USD"].expense_cents == 500
+    assert by_code["USD"].income_cents == 0
 
     day = await service.get(
         datetime(2026, 11, 5, tzinfo=ZoneInfo("Europe/Madrid")).date(),
         datetime(2026, 11, 5, tzinfo=ZoneInfo("Europe/Madrid")).date(),
     )
-    assert day.expense_cents == 2000
-    assert day.income_cents == 0
+    day_eur = next(group for group in day.currencies if group.currency == "EUR")
+    assert day_eur.expense_cents == 2000
+    assert day_eur.income_cents == 0

@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from income_expense_bot.domain.exception.ledger import InvalidCategoryError, MissingPayeeError
 from income_expense_bot.domain.model.category import catalog_for
+from income_expense_bot.domain.model.currency import DEFAULT_CURRENCY
 from income_expense_bot.domain.model.entry_type import EntryType, PaymentMethod
 from income_expense_bot.domain.model.money import Money
 
@@ -23,6 +24,7 @@ class LedgerEntry:
     id: str = field(default_factory=lambda: str(uuid4()))
     payment_method: PaymentMethod = PaymentMethod.CARD
     occurred_at: datetime = field(default_factory=_utc_now)
+    currency: str = DEFAULT_CURRENCY
 
     def __hash__(self) -> int:
         return hash(self.id)
@@ -87,6 +89,7 @@ class LedgerEntry:
             "payee": cleaned,
             "category": category,
             "payment_method": PaymentMethod.CARD,
+            "currency": money.currency,
         }
         if occurred_at is not None:
             kwargs["occurred_at"] = occurred_at

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sqlalchemy import event
+from sqlalchemy import Connection, event, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from income_expense_bot.config import Config
@@ -35,7 +35,17 @@ def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSessi
     )
 
 
+def _ensure_currency_column(sync_connection: Connection) -> None:
+    rows = sync_connection.execute(text("PRAGMA table_info(ledger_entries)")).fetchall()
+    names = {row[1] for row in rows}
+    if "currency" not in names:
+        sync_connection.execute(
+            text("ALTER TABLE ledger_entries ADD COLUMN currency VARCHAR(3) NOT NULL DEFAULT 'EUR'")
+        )
+
+
 async def create_schema(engine: AsyncEngine) -> None:
     start_mappers()
     async with engine.begin() as connection:
         await connection.run_sync(metadata.create_all)
+        await connection.run_sync(_ensure_currency_column)
