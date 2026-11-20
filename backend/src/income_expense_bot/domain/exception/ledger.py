@@ -3,7 +3,11 @@ class LedgerError(Exception):
 
 
 class InvalidAmountError(LedgerError):
-    """Amount text is not a valid euro amount with at most two decimals."""
+    """Amount text is not a valid amount for the entry currency."""
+
+
+class InvalidCurrencyError(LedgerError):
+    """Currency token is not in the catalog."""
 
 
 class MissingPayeeError(LedgerError):

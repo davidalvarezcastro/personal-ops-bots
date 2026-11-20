@@ -7,7 +7,7 @@ Gives the operator a single-page web app to see this month's cashflow and recent
 ## Requirements
 
 ### Requirement: Home shows current month and recent entries
-When the operator opens the app's home view with no extra navigation, the system SHALL show the current calendar month summary (`Europe/Madrid`) including income, expense, net, and totals by category, and SHALL show the eight most recent ledger entries with type, amount, payee, and category.
+When the operator opens the app's home view with no extra navigation, the system SHALL show the current calendar month summary (`Europe/Madrid`) including, per currency, income, expense, net, and totals by category, and SHALL show the eight most recent ledger entries with type, amount, currency, payee, and category.
 
 #### Scenario: Open home in November
 - **WHEN** the operator opens the home view during November 2026
@@ -15,7 +15,7 @@ When the operator opens the app's home view with no extra navigation, the system
 
 #### Scenario: Empty ledger
 - **WHEN** the operator opens home with no stored entries
-- **THEN** the summary shows zero income, expense, and net, and the recent list is empty rather than an error
+- **THEN** the summary shows a EUR group with zero income, expense, and net, and the recent list is empty rather than an error
 
 ### Requirement: Operator can open a longer entry list
 The system SHALL provide a control on home that loads older movements using the list cursor from the first eight, not a numeric offset.
@@ -26,11 +26,11 @@ The system SHALL provide a control on home that loads older movements using the 
 - **THEN** the remaining older entries become visible and the original eight are not duplicated
 
 ### Requirement: Operator can record expense and income from forms
-The system SHALL provide distinct expense and income capture flows. Each MUST collect amount, payee or source, and an optional category from that type's catalog. On success the new entry MUST appear in the recent list and the month summary MUST include it.
+The system SHALL provide distinct expense and income capture flows. Each MUST collect amount, optional currency (default EUR), payee or source, and an optional category from that type's catalog. On success the new entry MUST appear in the recent list and the month summary MUST include it in that currency's totals.
 
 #### Scenario: Save grocery expense
-- **WHEN** the operator opens expense capture, enters `12,50`, payee `Mercadona`, category `Groceries`, and saves
-- **THEN** home lists a `Groceries` expense of 12,50 EUR for Mercadona and the month expense total increases by 1250 cents
+- **WHEN** the operator opens expense capture, enters `12,50`, payee `Mercadona`, category `Groceries`, leaves currency as EUR, and saves
+- **THEN** home lists a `Groceries` expense of 12,50 EUR for Mercadona and the EUR month expense total increases by 1250 minor units
 
 #### Scenario: Income capture uses income categories
 - **WHEN** the operator opens income capture

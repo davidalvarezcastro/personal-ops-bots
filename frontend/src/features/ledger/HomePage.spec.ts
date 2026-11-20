@@ -21,6 +21,7 @@ function entry(partial: Partial<LedgerEntry> & { id: string; payee: string }): L
   return {
     type: "expense",
     amount_cents: 100,
+    currency: "EUR",
     category: "Uncategorized",
     payment_method: "card",
     occurred_at: "2026-11-07T10:00:00+00:00",
@@ -31,11 +32,16 @@ function entry(partial: Partial<LedgerEntry> & { id: string; payee: string }): L
 const emptyBalance: Balance = {
   start: "2026-11-01",
   end: "2026-11-30",
-  income_cents: 0,
-  expense_cents: 0,
-  net_cents: 0,
-  expense_by_category: [],
-  income_by_category: [],
+  currencies: [
+    {
+      currency: "EUR",
+      income_cents: 0,
+      expense_cents: 0,
+      net_cents: 0,
+      expense_by_category: [],
+      income_by_category: [],
+    },
+  ],
 };
 
 async function mountHome() {
@@ -118,7 +124,39 @@ describe("HomePage", () => {
       amount: "12,50",
       payee: "Mercadona",
       category: "Groceries",
+      currency: "EUR",
     });
+  });
+
+  it("shows EUR and USD month totals separately", async () => {
+    vi.mocked(api.fetchBalance).mockResolvedValue({
+      start: "2026-11-01",
+      end: "2026-11-30",
+      currencies: [
+        {
+          currency: "EUR",
+          income_cents: 0,
+          expense_cents: 1000,
+          net_cents: -1000,
+          expense_by_category: [{ category: "Groceries", amount_cents: 1000 }],
+          income_by_category: [],
+        },
+        {
+          currency: "USD",
+          income_cents: 0,
+          expense_cents: 500,
+          net_cents: -500,
+          expense_by_category: [{ category: "Food & Drinks", amount_cents: 500 }],
+          income_by_category: [],
+        },
+      ],
+    });
+    const wrapper = await mountHome();
+    await flushPromises();
+    expect(wrapper.get('[data-testid="currency-EUR"]').text()).toContain("EUR");
+    expect(wrapper.get('[data-testid="currency-EUR"]').text()).toContain("10,00 EUR");
+    expect(wrapper.get('[data-testid="currency-USD"]').text()).toContain("USD");
+    expect(wrapper.get('[data-testid="currency-USD"]').text()).toContain("5,00 USD");
   });
 
   it("income capture excludes Groceries", async () => {

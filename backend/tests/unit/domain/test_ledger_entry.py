@@ -15,6 +15,7 @@ def test_record_expense_never_transfer() -> None:
     assert entry.type is EntryType.EXPENSE
     assert entry.type is not EntryType.TRANSFER
     assert entry.payment_method is PaymentMethod.CARD
+    assert entry.currency == "EUR"
     assert before <= entry.occurred_at <= after
 
 

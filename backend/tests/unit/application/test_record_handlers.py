@@ -18,6 +18,7 @@ async def test_record_expense_persists_without_totals() -> None:
     entry = uow.entries.items[0]
     assert entry.type is EntryType.EXPENSE
     assert entry.amount_cents == 1250
+    assert entry.currency == "EUR"
     assert entry.payee == "Mercadona"
 
 

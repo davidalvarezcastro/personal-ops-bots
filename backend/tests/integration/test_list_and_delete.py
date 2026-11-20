@@ -66,4 +66,4 @@ async def test_delete_omitted_from_balance(
         today_provider=lambda: datetime.now(UTC).date(),
     )
     result = await service.get()
-    assert result.expense_cents == 0
+    assert result.currencies[0].expense_cents == 0

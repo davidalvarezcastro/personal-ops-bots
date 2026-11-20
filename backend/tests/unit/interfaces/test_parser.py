@@ -1,12 +1,18 @@
 import pytest
 
-from income_expense_bot.domain.exception.ledger import InvalidAmountError, InvalidDateFormatError, MissingPayeeError
+from income_expense_bot.domain.exception.ledger import (
+    InvalidAmountError,
+    InvalidCurrencyError,
+    InvalidDateFormatError,
+    MissingPayeeError,
+)
 from income_expense_bot.interfaces.telegram.parser import parse_balance_args, parse_expense, parse_income
 
 
 def test_expense_merchant_only() -> None:
     command = parse_expense("/expense 12,50 Mercadona")
     assert command.amount_cents == 1250
+    assert command.currency == "EUR"
     assert command.payee == "Mercadona"
     assert command.category == "Uncategorized"
 
@@ -58,3 +64,30 @@ def test_balance_invalid_format() -> None:
 def test_invalid_amount_rejected() -> None:
     with pytest.raises(InvalidAmountError):
         parse_expense("/expense 12,345 Shop")
+
+
+def test_expense_euro_symbol_spaced_and_attached() -> None:
+    spaced = parse_expense("/expense 65 € Mercadona")
+    assert spaced.amount_cents == 6500
+    assert spaced.currency == "EUR"
+    attached = parse_expense("/expense 65€ Mercadona")
+    assert attached.amount_cents == 6500
+    assert attached.currency == "EUR"
+
+
+def test_expense_usd_iso() -> None:
+    command = parse_expense("/expense 12,50 USD Starbucks")
+    assert command.amount_cents == 1250
+    assert command.currency == "USD"
+    assert command.payee == "Starbucks"
+
+
+def test_expense_yen_symbol() -> None:
+    command = parse_expense("/expense 65 ¥ Konbini")
+    assert command.amount_cents == 65
+    assert command.currency == "JPY"
+
+
+def test_unknown_iso_rejected() -> None:
+    with pytest.raises(InvalidCurrencyError):
+        parse_expense("/expense 10 INR Shop")

@@ -80,6 +80,7 @@ class TelegramDispatcher:
                         amount_cents=command.amount_cents,
                         payee=command.payee,
                         category=command.category,
+                        currency=command.currency,
                     )
                 )
             except MissingPayeeError:
@@ -102,6 +103,7 @@ class TelegramDispatcher:
                         amount_cents=command.amount_cents,
                         payee=command.payee,
                         category=command.category,
+                        currency=command.currency,
                     )
                 )
             except MissingPayeeError:

@@ -60,6 +60,7 @@ ledger_entries_table = Table(
     Column("id", String, primary_key=True),
     Column("type", EnumValue(EntryType), nullable=False),
     Column("amount_cents", Integer, nullable=False),
+    Column("currency", String(3), nullable=False, server_default="EUR"),
     Column("payee", String, nullable=False),
     Column("category", String, nullable=False),
     Column("payment_method", EnumValue(PaymentMethod), nullable=False),

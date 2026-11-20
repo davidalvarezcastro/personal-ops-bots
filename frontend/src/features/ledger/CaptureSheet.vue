@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 
-import type { EntryType } from "./types";
+import { CURRENCIES, type EntryType } from "./types";
 
 const props = defineProps<{
   open: boolean;
@@ -10,12 +10,13 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   close: [];
-  save: [payload: { amount: string; payee: string; category: string }];
+  save: [payload: { amount: string; payee: string; category: string; currency: string }];
 }>();
 
 const amount = ref("");
 const payee = ref("");
 const category = ref("Uncategorized");
+const currency = ref("EUR");
 const title = computed(() => (props.entryType === "expense" ? "Expense" : "Income"));
 
 watch(
@@ -25,12 +26,18 @@ watch(
       amount.value = "";
       payee.value = "";
       category.value = "Uncategorized";
+      currency.value = "EUR";
     }
   },
 );
 
 function submit() {
-  emit("save", { amount: amount.value, payee: payee.value, category: category.value });
+  emit("save", {
+    amount: amount.value,
+    payee: payee.value,
+    category: category.value,
+    currency: currency.value,
+  });
 }
 </script>
 
@@ -40,6 +47,11 @@ function submit() {
       <h2 class="text-lg font-semibold">{{ title }}</h2>
       <label class="mt-3 block text-sm">Amount
         <input v-model="amount" class="mt-1 w-full rounded border px-2 py-1" data-testid="amount" required />
+      </label>
+      <label class="mt-3 block text-sm">Currency
+        <select v-model="currency" class="mt-1 w-full rounded border px-2 py-1" data-testid="currency">
+          <option v-for="code in CURRENCIES" :key="code" :value="code">{{ code }}</option>
+        </select>
       </label>
       <label class="mt-3 block text-sm">{{ entryType === "expense" ? "Merchant" : "Source" }}
         <input v-model="payee" class="mt-1 w-full rounded border px-2 py-1" data-testid="payee" required />

@@ -11,11 +11,11 @@ Commands:
 /help
   Show this command list.
 
-/expense <amount> [<category>] <merchant...>
-  Record an expense. Example: /expense 12,50 Mercadona
+/expense <amount> [<currency>] [<category>] <merchant...>
+  Record an expense. Currency is optional (EUR default). Example: /expense 12,50 € Mercadona
 
-/income <amount> [<category>] <source...>
-  Record income. Example: /income 1800 Salary Company
+/income <amount> [<currency>] [<category>] <source...>
+  Record income. Currency is optional (EUR default). Example: /income 1800 Salary Company
 
 /balance [<start_date>] [<end_date>]
   Show net and totals by category. Dates are YYYY-MM-DD.

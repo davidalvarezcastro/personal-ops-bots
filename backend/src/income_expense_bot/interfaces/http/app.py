@@ -29,12 +29,14 @@ from income_expense_bot.domain.exception.ledger import (
     EntryNotFoundError,
     InvalidAmountError,
     InvalidCategoryError,
+    InvalidCurrencyError,
     InvalidCursorError,
     InvalidDateFormatError,
     InvalidDateRangeError,
     MissingPayeeError,
 )
 from income_expense_bot.domain.model.category import UNCATEGORIZED, catalog_for
+from income_expense_bot.domain.model.currency import currency_or_default
 from income_expense_bot.domain.model.entry_type import EntryType
 from income_expense_bot.domain.model.money import Money
 from income_expense_bot.infrastructure.database import (
@@ -45,12 +47,12 @@ from income_expense_bot.infrastructure.database import (
 from income_expense_bot.infrastructure.read_model.balance_read_model import SqlBalanceReadModel
 from income_expense_bot.infrastructure.unity_of_work import SqlAlchemyUnitOfWork
 from income_expense_bot.interfaces.http.schemas import (
-    BalanceCategoryOut,
     BalanceOut,
     EntryCreate,
     EntryOut,
     EntryPageOut,
     EntryPatch,
+    balance_to_out,
     entry_to_out,
 )
 
@@ -113,6 +115,10 @@ def create_app(config: Config | None = None) -> FastAPI:
     async def _bad_amount(_request: Request, exc: InvalidAmountError) -> JSONResponse:
         return JSONResponse({"detail": str(exc)}, status_code=422)
 
+    @application.exception_handler(InvalidCurrencyError)
+    async def _bad_currency(_request: Request, exc: InvalidCurrencyError) -> JSONResponse:
+        return JSONResponse({"detail": str(exc)}, status_code=400)
+
     def _uow(request: Request) -> SqlAlchemyUnitOfWork:
         return SqlAlchemyUnitOfWork(request.app.state.session_factory)
 
@@ -131,21 +137,7 @@ def create_app(config: Config | None = None) -> FastAPI:
         start_date = parse_iso_date(start) if start else None
         end_date = parse_iso_date(end) if end else None
         result = await _balance_service(request).get(start_date, end_date)
-        return BalanceOut(
-            start=result.period.start.isoformat(),
-            end=result.period.end.isoformat(),
-            income_cents=result.income_cents,
-            expense_cents=result.expense_cents,
-            net_cents=result.net_cents,
-            expense_by_category=[
-                BalanceCategoryOut(category=row.category, amount_cents=row.amount_cents)
-                for row in result.expense_by_category
-            ],
-            income_by_category=[
-                BalanceCategoryOut(category=row.category, amount_cents=row.amount_cents)
-                for row in result.income_by_category
-            ],
-        )
+        return balance_to_out(result)
 
     @application.get("/api/v1/entries", response_model=EntryPageOut)
     async def list_entries(
@@ -163,7 +155,8 @@ def create_app(config: Config | None = None) -> FastAPI:
 
     @application.post("/api/v1/entries", response_model=EntryOut, status_code=201)
     async def create_entry(request: Request, body: EntryCreate) -> EntryOut:
-        money = Money.parse(body.amount)
+        currency = currency_or_default(body.currency)
+        money = Money.parse(body.amount, currency=currency)
         entry_type = EntryType(body.type)
         raw_category = body.category.strip() if body.category else UNCATEGORIZED
         lookup = {name.casefold(): name for name in catalog_for(entry_type)}
@@ -173,11 +166,21 @@ def create_app(config: Config | None = None) -> FastAPI:
         uow = _uow(request)
         if body.type == "expense":
             await RecordExpenseHandler(uow).handle(
-                RecordExpenseCommand(amount_cents=money.cents, payee=body.payee, category=category)
+                RecordExpenseCommand(
+                    amount_cents=money.cents,
+                    payee=body.payee,
+                    category=category,
+                    currency=money.currency,
+                )
             )
         else:
             await RecordIncomeHandler(uow).handle(
-                RecordIncomeCommand(amount_cents=money.cents, payee=body.payee, category=category)
+                RecordIncomeCommand(
+                    amount_cents=money.cents,
+                    payee=body.payee,
+                    category=category,
+                    currency=money.currency,
+                )
             )
         async with uow as unit:
             page = await LedgerEntryListQueryService(unit.entries).get(limit=1)

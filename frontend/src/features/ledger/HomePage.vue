@@ -57,12 +57,13 @@ function invalidate() {
 }
 
 const saveMutation = useMutation({
-  mutationFn: (payload: { amount: string; payee: string; category: string }) =>
+  mutationFn: (payload: { amount: string; payee: string; category: string; currency: string }) =>
     createEntry({
       type: captureType.value ?? "expense",
       amount: payload.amount,
       payee: payload.payee,
       category: payload.category,
+      currency: payload.currency,
     }),
   onSuccess: () => {
     captureType.value = null;

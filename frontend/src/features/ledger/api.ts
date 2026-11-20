@@ -41,6 +41,7 @@ export function createEntry(body: {
   amount: string;
   payee: string;
   category?: string;
+  currency?: string;
 }): Promise<LedgerEntry> {
   return request<LedgerEntry>("/api/v1/entries", { method: "POST", body: JSON.stringify(body) });
 }

@@ -18,6 +18,7 @@ class SqlBalanceReadModel(AbstractBalanceReadModel):
             select(
                 ledger_entries_table.c.type,
                 ledger_entries_table.c.category,
+                ledger_entries_table.c.currency,
                 func.sum(ledger_entries_table.c.amount_cents),
             )
             .where(
@@ -25,18 +26,23 @@ class SqlBalanceReadModel(AbstractBalanceReadModel):
                 ledger_entries_table.c.occurred_at < period.end_exclusive_utc(),
                 ledger_entries_table.c.type != EntryType.TRANSFER,
             )
-            .group_by(ledger_entries_table.c.type, ledger_entries_table.c.category)
+            .group_by(
+                ledger_entries_table.c.type,
+                ledger_entries_table.c.category,
+                ledger_entries_table.c.currency,
+            )
         )
         async with self._session_factory() as session:
             result = await session.execute(stmt)
             rows: list[CategorySum] = []
-            for entry_type, category, total in result.all():
+            for entry_type, category, currency, total in result.all():
                 type_value = entry_type.value if isinstance(entry_type, EntryType) else str(entry_type)
                 rows.append(
                     CategorySum(
                         entry_type=type_value,
                         category=str(category),
                         amount_cents=int(total or 0),
+                        currency=str(currency or "EUR"),
                     )
                 )
             return rows

@@ -13,7 +13,7 @@ const emit = defineEmits<{ edit: []; remove: [] }>();
     </div>
     <div class="flex items-center gap-2">
       <span :class="entry.type === 'income' ? 'text-emerald-700' : 'text-rose-700'">
-        {{ entry.type === "income" ? "+" : "-" }}{{ formatCents(entry.amount_cents) }}
+        {{ entry.type === "income" ? "+" : "-" }}{{ formatCents(entry.amount_cents, entry.currency) }}
       </span>
       <button type="button" class="text-sm underline" data-testid="edit" @click="emit('edit')">Edit</button>
       <button type="button" class="text-sm underline" data-testid="delete" @click="emit('remove')">Delete</button>
