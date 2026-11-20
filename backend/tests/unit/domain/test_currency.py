@@ -10,7 +10,12 @@ def test_resolve_iso_and_symbols() -> None:
     assert resolve_currency_token("€") == "EUR"
     assert resolve_currency_token("$") == "USD"
     assert resolve_currency_token("£") == "GBP"
-    assert resolve_currency_token("¥") == "JPY"
+    assert resolve_currency_token("JPY") == "JPY"
+    assert resolve_currency_token("JP¥") == "JPY"
+    assert resolve_currency_token("¥") == "CNY"
+    assert resolve_currency_token("rmb") == "CNY"
+    assert resolve_currency_token("RMB") == "CNY"
+    assert resolve_currency_token("CNY") == "CNY"
     assert resolve_currency_token("CN¥") == "CNY"
     assert resolve_currency_token("USD") == "USD"
 

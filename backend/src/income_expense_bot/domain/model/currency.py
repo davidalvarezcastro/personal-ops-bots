@@ -16,8 +16,8 @@ SPECS: tuple[CurrencySpec, ...] = (
     CurrencySpec("EUR", 2, ("€",)),
     CurrencySpec("USD", 2, ("$",)),
     CurrencySpec("GBP", 2, ("£",)),
-    CurrencySpec("JPY", 0, ("¥",)),
-    CurrencySpec("CNY", 2, ("CN¥",)),
+    CurrencySpec("JPY", 0, ("JP¥",)),
+    CurrencySpec("CNY", 2, ("CN¥", "¥")),
 )
 
 BY_CODE: dict[str, CurrencySpec] = {spec.code: spec for spec in SPECS}
@@ -30,6 +30,7 @@ _SYMBOLS: tuple[tuple[str, CurrencySpec], ...] = tuple(
 )
 
 DEFAULT_CURRENCY = "EUR"
+ALIASES: dict[str, str] = {"RMB": "CNY"}
 
 
 def spec_for(code: str) -> CurrencySpec:
@@ -47,6 +48,8 @@ def resolve_currency_token(token: str) -> str | None:
         if stripped == symbol:
             return spec.code
     upper = stripped.upper()
+    if upper in ALIASES:
+        return ALIASES[upper]
     if upper in BY_CODE:
         return upper
     if len(stripped) == 3 and stripped.isalpha():
